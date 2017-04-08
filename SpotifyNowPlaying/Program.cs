@@ -10,28 +10,35 @@ namespace SpotifyNowPlaying
         private static SpotifyLocalAPI _spotify;
         static void Main(string[] args)
         {
-
-            _spotify = new SpotifyLocalAPI();
-            bool connected = connect();
-
-            if (!connected)
+            try
             {
-                return;
+                _spotify = new SpotifyLocalAPI();
+                bool connected = connect();
+
+                if (!connected)
+                {
+                    return;
+                }
+
+                StatusResponse status = _spotify.GetStatus();
+                if (status == null || status.Track == null || status.Track.TrackResource == null || status.Track.ArtistResource == null)
+                {
+                    Console.WriteLine("Cannot retrieve information from Spotify client");
+                    return;
+                }
+                else
+                {
+                    var playing = (status.Playing) ? "" : " (paused)";
+
+                    Console.WriteLine($"Now playing: {status.Track.TrackResource.Name} by {status.Track.ArtistResource.Name}{playing}");
+                }
+
             }
-
-            StatusResponse status = _spotify.GetStatus();
-            if (status == null || status.Track == null || status.Track.TrackResource == null || status.Track.ArtistResource == null)
+            catch (Exception)
             {
+                //Catch every exception as we don't want a crash to be unhandled because it steals the focus when SpotifyNowPlaying is used in Limebar
                 Console.WriteLine("Cannot retrieve information from Spotify client");
-                return;
             }
-            else
-            { 
-                var playing = (status.Playing) ? "" : " (paused)";
-
-                Console.WriteLine($"Now playing: {status.Track.TrackResource.Name} by {status.Track.ArtistResource.Name}{playing}");
-            }
-
         }
 
         private static bool connect()
